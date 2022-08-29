@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.client import device_lib
 from sklearn import metrics
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -19,6 +20,16 @@ import DataIO_ShapeNet as IO
 from ShapeNet import ShapeNet_DGCNN_trainer as trainer
 from Tool import printout
 import Evaluation
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos]
+
+a = get_available_gpus();
+print(a)
+basedir = os.path.dirname(__file__)
+dataset = os.path.join(basedir, "Dataset")
+shapeNetdir = os.path.join(dataset, "ShapeNet")
 
 ##### Take input arguments
 parser = arg.ArgumentParser(description='Take parameters')
@@ -42,7 +53,8 @@ if args.GPU != -1:
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.GPU)
 
 ##### Load Training/Testing Data
-Loader = IO.ShapeNetIO('./Dataset/ShapeNet',batchsize = args.batchsize)
+shapeNetDataDir = os.path.join(dataset, "ShapeNet")
+Loader = IO.ShapeNetIO(shapeNetDataDir, batchsize = args.batchsize)
 Loader.LoadTrainValFiles()
 
 ##### Evaluation Object
@@ -56,7 +68,7 @@ ShapeCatNum = Loader.NUM_CATEGORIES
 #### Export results Directories
 if args.ExpRslt:
     dt = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # get current time
-    BASE_PATH = os.path.expanduser('./Results/ShapeNet/{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt))
+    BASE_PATH = os.path.expanduser(os.path.join(os.path.dirname(__file__), "\\Results\\ShapeNet\\{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt)"))
     SUMMARY_PATH = os.path.join(BASE_PATH,'Summary'.format(args.m))
     PRED_PATH = os.path.join(BASE_PATH,'Prediction'.format(args.m))
     CHECKPOINT_PATH = os.path.join(BASE_PATH,'Checkpoint'.format(args.m))
@@ -88,7 +100,8 @@ elif args.Style == 'Plain':
     TrainOp.defineNetwork(batch_size=args.batchsize, point_num=2048, style=args.Style, rampup=args.Rampup)
 
 #### Load Sampled Point Index
-save_path = os.path.expanduser('./Dataset/ShapeNet/Preprocess/')
+preprocessdir = os.path.join(shapeNetdir,"Preprocess")
+save_path = os.path.expanduser(preprocessdir)
 save_filepath = os.path.join(save_path, 'SampIndex_m-{:.3f}.mat'.format(args.m))
 tmp = scio.loadmat(save_filepath)
 pts_idx_list = tmp['pts_idx_list']
