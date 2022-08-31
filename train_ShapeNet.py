@@ -13,8 +13,8 @@ import time
 import scipy.io as scio
 import datetime
 
-sys.path.append(os.path.expanduser('./Util'))
-sys.path.append(os.path.expanduser('./ShapeNet'))
+sys.path.append(os.path.expanduser('.\\Util'))
+sys.path.append(os.path.expanduser('.\\ShapeNet'))
 
 import DataIO_ShapeNet as IO
 from ShapeNet import ShapeNet_DGCNN_trainer as trainer
@@ -68,7 +68,7 @@ ShapeCatNum = Loader.NUM_CATEGORIES
 #### Export results Directories
 if args.ExpRslt:
     dt = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # get current time
-    BASE_PATH = os.path.expanduser(os.path.join(os.path.dirname(__file__), "\\Results\\ShapeNet\\{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt)"))
+    BASE_PATH = os.path.expanduser(os.path.join(os.path.dirname(__file__), '\\Results\\ShapeNet\\{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt)))
     SUMMARY_PATH = os.path.join(BASE_PATH,'Summary'.format(args.m))
     PRED_PATH = os.path.join(BASE_PATH,'Prediction'.format(args.m))
     CHECKPOINT_PATH = os.path.join(BASE_PATH,'Checkpoint'.format(args.m))
