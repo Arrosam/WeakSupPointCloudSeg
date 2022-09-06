@@ -86,13 +86,13 @@ def batch_gather_v1(X, idx):
     B_tf = tf.shape(X)[0]
 
     # B = X.get_shape()[0]
-    D = X.get_shape()[-1].value
-    knn = idx.get_shape()[-1].value
+    D = X.get_shape().dims[-1].value
+    knn = idx.get_shape().dims[-1].value
     N_tf = tf.shape(X)[1]
     # D_tf = tf.shape(X)[2]
     dims = tf.stack([0, N_tf, knn, D])
     Xall = tf.fill(dims=dims, value=0.)
-    Xall_shp = tf.TensorShape([None, Xall.get_shape()[1], Xall.get_shape()[2], Xall.get_shape()[3]])
+    Xall_shp = tf.TensorShape([None, Xall.get_shape().dims[1], Xall.get_shape().dims[2], Xall.get_shape().dims[3]])
 
     i = tf.constant(0)
 
@@ -242,7 +242,7 @@ def batch_norm(inputs, is_training, scope, moments_dims, bn_decay):
         normed:        batch-normalized maps
     """
     with tf.variable_scope(scope) as sc:
-        num_channels = inputs.get_shape()[-1].value
+        num_channels = inputs.get_shape().dims[-1].value
         beta = tf.Variable(tf.constant(0.0, shape=[num_channels]),
                            name='beta', trainable=True)
         gamma = tf.Variable(tf.constant(1.0, shape=[num_channels]),

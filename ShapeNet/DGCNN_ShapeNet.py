@@ -14,8 +14,9 @@ from transform_nets import input_transform_net
 
 def get_model(point_cloud, input_label, is_training, cat_num, part_num, \
               batch_size, num_point, weight_decay, bn_decay=None):
-    batch_size = point_cloud.get_shape()[0].value
-    num_point = point_cloud.get_shape()[1].value
+    shape = point_cloud.get_shape().dims
+    batch_size = shape[0].value
+    num_point = shape[1].value
     input_image = tf.expand_dims(point_cloud, -1)
 
     k = 20
@@ -24,7 +25,7 @@ def get_model(point_cloud, input_label, is_training, cat_num, part_num, \
     nn_idx = tf_util.knn(adj, k=k)
     edge_feature = tf_util.get_edge_feature(input_image, nn_idx=nn_idx, k=k)
 
-    with tf.variable_scope('transform_net1') as sc:
+    with tf.compat.v1.variable_scope('transform_net1') as sc:
         transform = input_transform_net(edge_feature, is_training, bn_decay, K=3, is_dist=True)
     point_cloud_transformed = tf.matmul(point_cloud, transform)
 
@@ -43,7 +44,7 @@ def get_model(point_cloud, input_label, is_training, cat_num, part_num, \
                           bn=True, is_training=is_training, weight_decay=weight_decay,
                           scope='adj_conv2', bn_decay=bn_decay, is_dist=True)
 
-    net_1 = tf.reduce_max(out2, axis=-2, keep_dims=True)
+    net_1 = tf.reduce_max(out2, axis=-2, keepdims=True)
 
     adj = tf_util.pairwise_distance(net_1)
     nn_idx = tf_util.knn(adj, k=k)
@@ -59,7 +60,7 @@ def get_model(point_cloud, input_label, is_training, cat_num, part_num, \
                           bn=True, is_training=is_training, weight_decay=weight_decay,
                           scope='adj_conv4', bn_decay=bn_decay, is_dist=True)
 
-    net_2 = tf.reduce_max(out4, axis=-2, keep_dims=True)
+    net_2 = tf.reduce_max(out4, axis=-2, keepdims=True)
 
     adj = tf_util.pairwise_distance(net_2)
     nn_idx = tf_util.knn(adj, k=k)
@@ -75,7 +76,7 @@ def get_model(point_cloud, input_label, is_training, cat_num, part_num, \
     #                      bn=True, is_training=is_training, weight_decay=weight_decay,
     #                      scope='adj_conv6', bn_decay=bn_decay, is_dist=True)
 
-    net_3 = tf.reduce_max(out5, axis=-2, keep_dims=True)
+    net_3 = tf.reduce_max(out5, axis=-2, keepdims=True)
 
     out7 = tf_util.conv2d(tf.concat([net_1, net_2, net_3], axis=-1), 1024, [1, 1],
                           padding='VALID', stride=[1, 1],

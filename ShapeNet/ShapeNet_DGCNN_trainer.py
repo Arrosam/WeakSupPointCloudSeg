@@ -34,7 +34,7 @@ class ShapeNet_Trainer():
         self.BN_DECAY_CLIP = 0.99
 
     def get_learning_rate(self):
-        learning_rate = tf.train.exponential_decay(
+        learning_rate = tf.compat.v1.train.exponential_decay(
             self.BASE_LEARNING_RATE,  # Base learning rate.
             self.batch * self.BATCH_SIZE,  # Current index into the dataset.
             self.DECAY_STEP,  # Decay step.
@@ -44,7 +44,7 @@ class ShapeNet_Trainer():
         return learning_rate
 
     def get_bn_decay(self):
-        bn_momentum = tf.train.exponential_decay(
+        bn_momentum = tf.compat.v1.train.exponential_decay(
             self.BN_INIT_DECAY,
             self.batch * self.BATCH_SIZE,
             self.BN_DECAY_DECAY_STEP,
@@ -67,11 +67,12 @@ class ShapeNet_Trainer():
         self.rampup = rampup
 
         ##### Define Network Inputs
-        self.X_ph = tf.placeholder(dtype=tf.float32, shape=[batch_size, point_num, 3], name='InputPts')  # B*N*3
-        self.Y_ph = tf.placeholder(dtype=tf.int32, shape=[batch_size, point_num, 50], name='PartGT')  # B*N*50
-        self.Mask_ph = tf.placeholder(dtype=tf.float32, shape=[batch_size, point_num], name='Mask')  # B*N
-        self.Is_Training_ph = tf.placeholder(dtype=tf.bool, shape=(), name='IsTraining')
-        self.Label_ph = tf.placeholder(dtype=tf.float32, shape=[batch_size, 16],name='ShapeGT') # B*1*K
+        tf.compat.v1.disable_eager_execution()
+        self.X_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, point_num, 3], name='InputPts')  # B*N*3
+        self.Y_ph = tf.compat.v1.placeholder(dtype=tf.int32, shape=[batch_size, point_num, 50], name='PartGT')  # B*N*50
+        self.Mask_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, point_num], name='Mask')  # B*N
+        self.Is_Training_ph = tf.compat.v1.placeholder(dtype=tf.bool, shape=(), name='IsTraining')
+        self.Label_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, 16],name='ShapeGT') # B*1*K
 
         ## Set up batch norm decay and learning rate decay
         self.batch = tf.Variable(0, trainable=False)
@@ -102,12 +103,12 @@ class ShapeNet_Trainer():
             sys.exit('Loss {} is not defined!'.format(self.loss))
 
         ##### Define Optimizer
-        self.solver = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss,global_step=self.batch)  # initialize solver
-        self.saver = tf.train.Saver(max_to_keep=2)
-        config = tf.ConfigProto(allow_soft_placement=False)
+        self.solver = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss,global_step=self.batch)  # initialize solver
+        self.saver = tf.compat.v1.train.Saver(max_to_keep=2)
+        config = tf.compat.v1.ConfigProto(allow_soft_placement=False)
         config.gpu_options.allow_growth = bool(True)  # Use how much GPU memory
-        self.sess = tf.Session(config=config)
-        self.sess.run(tf.global_variables_initializer())
+        self.sess = tf.compat.v1.Session(config=config)
+        self.sess.run(tf.compat.v1.global_variables_initializer())
 
         return True
 

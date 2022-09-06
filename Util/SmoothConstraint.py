@@ -55,7 +55,7 @@ def Loss_SpatialSmooth_SelfContain(X,gamma=1e-1,knn=5):
     Ind = tf.argsort(Dmat)[:,:,0:knn]
     W_knn = []
     for d_i, Ind_i in zip(tf.unstack(Dmat,axis=0), tf.unstack(Ind)):
-        W_knn.append(tf.batch_gather(tf.exp(-d_i / gamma), Ind_i))
+        W_knn.append(tf.compat.v1.batch_gather(tf.exp(-d_i / gamma), Ind_i))
     W_knn = tf.stack(W_knn)
 
     X_tilde = Tool.batch_gather_v1(X,Ind)   # indexed X B*N*Knn*3
@@ -101,13 +101,13 @@ def Loss_SpatialColorSmooth_SelfContain(Z,X,gamma=1e-1,knn=10):
     Ind_xyz = tf.argsort(Dmat_xyz)[:,:,0:knn]   # B*N*knn
     W_knn_xyz = []
     for d_i, Ind_i in zip(tf.unstack(Dmat_xyz,axis=0), tf.unstack(Ind_xyz)):
-        W_knn_xyz.append(tf.batch_gather(tf.exp(-d_i / gamma), Ind_i))
+        W_knn_xyz.append(tf.compat.v1.batch_gather(tf.exp(-d_i / gamma), Ind_i))
     W_knn_xyz = tf.stack(W_knn_xyz)     # B*N*knn
     # rgb channel
     Ind_rgb = tf.argsort(Dmat_rgb)[:,:,0:knn]   # B*N*knn
     W_knn_rgb = []
     for d_i, Ind_i in zip(tf.unstack(Dmat_rgb,axis=0), tf.unstack(Ind_rgb)):
-        W_knn_rgb.append(tf.batch_gather(tf.exp(-d_i / gamma), Ind_i))
+        W_knn_rgb.append(tf.compat.v1.batch_gather(tf.exp(-d_i / gamma), Ind_i))
     W_knn_rgb = tf.stack(W_knn_rgb)     # B*N*knn
 
     knn_mask = tf.cast(tf.math.equal(Ind_xyz,Ind_rgb), tf.float32)   # B*N*Knn*3
@@ -154,7 +154,7 @@ def Loss_SpatialColorSmooth_add_SelfContain(Z,X,gamma=1e-1,knn=10):
     _, Ind = tf.nn.top_k(-Dmat, k = knn, sorted=True) # B*N*knn
     W_knn = []
     for d_i, Ind_i in zip(tf.unstack(Dmat,axis=0), tf.unstack(Ind)):
-        W_knn.append(tf.batch_gather(tf.exp(-d_i / gamma), Ind_i))
+        W_knn.append(tf.compat.v1.batch_gather(tf.exp(-d_i / gamma), Ind_i))
     W_knn = tf.stack(W_knn)     # B*N*knn
 
     #### Compute Loss
