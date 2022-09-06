@@ -605,10 +605,10 @@ class ShapeNet_Trainer():
 
         self.saver.save(self.sess, save_filepath)
 
-        filename = save_filepath.split('/')[-1]
-        path = os.path.join(*save_filepath.split('/')[0:-1])
-        path = '/' + path
-
+        filename = save_filepath.split('\\')[-1]
+        last_slash_index = save_filepath.rfind("\\")
+        path = save_filepath[0:last_slash_index]
+        path = path
         ## Save a copy of best performing model on validation set
         if self.bestValCorrect < np.mean(eval_avg_correct_rate):
             self.bestValCorrect = np.mean(eval_avg_correct_rate)
@@ -620,7 +620,8 @@ class ShapeNet_Trainer():
             trg_filepath = os.path.join(path,
                                         '{}.data-00000-of-00001'.format(
                                             best_filename))
-            command = 'cp {:s} {:s}'.format(src_filepath, trg_filepath)
+            command = "copy " + src_filepath + " " + trg_filepath
+            print("\n"+command)
             os.system(command)
 
             src_filepath = os.path.join(path,
@@ -628,7 +629,8 @@ class ShapeNet_Trainer():
             # trg_filepath = os.path.join(CHECKPOINT_PATH,'Checkpoint_CAM_L2Reg_PartDropout_bestOnValid_epoch-{:d}.index'.format(epoch))
             trg_filepath = os.path.join(path,
                                         '{}.index'.format(best_filename))
-            command = 'cp {:s} {:s}'.format(src_filepath, trg_filepath)
+            command = "copy " + src_filepath + " " + trg_filepath
+            print("\n" + command)
             os.system(command)
 
             src_filepath = os.path.join(path,
@@ -636,7 +638,8 @@ class ShapeNet_Trainer():
             # trg_filepath = os.path.join(CHECKPOINT_PATH,'Checkpoint_CAM_L2Reg_PartDropout_bestOnValid_epoch-{:d}.meta'.format(epoch))
             trg_filepath = os.path.join(path,
                                         '{}.meta'.format(best_filename))
-            command = 'cp {:s} {:s}'.format(src_filepath, trg_filepath)
+            command = "copy " + src_filepath + " " + trg_filepath
+            print("\n" + command)
             os.system(command)
 
     ### Restore Checkpoint function

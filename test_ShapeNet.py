@@ -61,7 +61,7 @@ ShapeCatNum = Loader.NUM_CATEGORIES
 #### Save Directories
 #dt='2020-06-17_07-45-44'
 dt = args.Datetime
-BASE_PATH = os.path.expanduser('./Results/ShapeNet/{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt))
+BASE_PATH = os.path.expanduser(os.path.join(os.path.dirname(__file__), '\\Results\\ShapeNet\\{}_sty-{}_m-{}_{}'.format(args.Network, args.Style, args.m, dt)))
 SUMMARY_PATH = os.path.join(BASE_PATH, 'Summary')
 PRED_PATH = os.path.join(BASE_PATH, 'Prediction')
 CHECKPOINT_PATH = os.path.join(BASE_PATH, 'Checkpoint')
