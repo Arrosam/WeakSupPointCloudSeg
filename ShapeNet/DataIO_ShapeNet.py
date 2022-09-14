@@ -25,7 +25,7 @@ class ShapeNetIO:
         fin.close()
 
         all_cats = json.load(open(os.path.join(self.h5_base_path, 'overallid_to_catid_partid.json'), 'r'))
-        self.NUM_CATEGORIES = 16
+        self.NUM_CATEGORIES = 1
         self.NUM_PART_CATS = len(all_cats)
 
         ## Load Part Categories for each shape
@@ -144,7 +144,6 @@ class ShapeNetIO:
 
     def NextBatch_TrainSet(self,shuffle_flag=False):
         '''
-
         :param shuffle_flag:
         :return:
         SuccessFlag

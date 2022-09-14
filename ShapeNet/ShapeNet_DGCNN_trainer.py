@@ -72,7 +72,7 @@ class ShapeNet_Trainer():
         self.Y_ph = tf.compat.v1.placeholder(dtype=tf.int32, shape=[batch_size, point_num, 50], name='PartGT')  # B*N*50
         self.Mask_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, point_num], name='Mask')  # B*N
         self.Is_Training_ph = tf.compat.v1.placeholder(dtype=tf.bool, shape=(), name='IsTraining')
-        self.Label_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, 16],name='ShapeGT') # B*1*K
+        self.Label_ph = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, 1],name='ShapeGT') # B*1*K
 
         ## Set up batch norm decay and learning rate decay
         self.batch = tf.Variable(0, trainable=False)
@@ -80,7 +80,7 @@ class ShapeNet_Trainer():
         learning_rate = self.get_learning_rate()
 
         ##### Define DGCNN network
-        self.Z = network.get_model(self.X_ph, self.Label_ph, self.Is_Training_ph, 16, 50, \
+        self.Z = network.get_model(self.X_ph, self.Label_ph, self.Is_Training_ph, 1, 50, \
                   batch_size, point_num, 0, bn_decay)
 
         self.Z_prob = tf.nn.softmax(self.Z, axis=-1)    # posterior output

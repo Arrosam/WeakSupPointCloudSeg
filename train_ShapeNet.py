@@ -131,7 +131,7 @@ for epoch in range(0,args.Epoch):
         train_avg_loss, 100 * train_avg_acc), write_flag = args.ExpRslt, fid = fid)
 
     #### Evaluate on Validation Set One Epoch
-    if epoch % 5 ==0:
+    if epoch % 5 == 0:
 
         printout('\n\nstart validation {:d}-th epoch at {}\n'.format(epoch, time.ctime()), write_flag=args.ExpRslt, fid=fid)
 
@@ -141,7 +141,7 @@ for epoch in range(0,args.Epoch):
             eval_avg_loss, eval_avg_acc, eval_perdata_miou, eval_pershape_miou = TrainOp.EvalOneEpoch(Loader, Eval)
 
         printout('\nEvaluationSet   avg loss {:.2f}   acc {:.2f}%   PerData mIoU {:.3f}%   PerShape mIoU {:.3f}%'.
-              format(eval_avg_loss,100*eval_avg_acc, 100*np.mean(eval_perdata_miou), 100*np.mean(eval_pershape_miou)), write_flag = args.ExpRslt, fid = fid)
+              format(eval_avg_loss, 100*eval_avg_acc, 100*np.mean(eval_perdata_miou), 100*np.mean(eval_pershape_miou)), write_flag = args.ExpRslt, fid = fid)
 
         string = '\nEval PerShape IoU:'
         for iou in eval_pershape_miou:
