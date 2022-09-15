@@ -1,3 +1,4 @@
+import h5py
 import numpy as np
 import tensorflow as tf
 import os
@@ -425,6 +426,13 @@ class ShapeNet_Trainer():
         avg_acc = 0.
         perdata_miou = 0.
         pershape_miou = np.zeros_like(shape_cnt)
+        batch = 32
+        vsize = 2048
+        basedir = os.path.dirname(__file__)
+        f = h5py.File(os.path.join(basedir, "multiSegPrediction.h5"), 'w')
+        a_data = np.zeros((batch, vsize, 3))
+        a_pid = np.zeros((batch, vsize), dtype=np.uint8)
+        a_label = np.zeros((batch, 1), dtype=np.uint8)
 
         while True:
 
@@ -433,6 +441,8 @@ class ShapeNet_Trainer():
 
             if not SuccessFlag:
                 break
+
+
 
             if mb_size < self.BATCH_SIZE:
                 data_feed = np.concatenate([data, np.tile(data[np.newaxis, 0, ...], [self.BATCH_SIZE - mb_size, 1, 1])],
@@ -489,6 +499,9 @@ class ShapeNet_Trainer():
                 Z_prob_b = copy.deepcopy(Z_prob_mb[b_i])
                 Z_prob_b[:, iou_oids] += 1
                 pred = np.argmax(Z_prob_b, axis=-1)
+                for i in range(0, vsize):
+                    a_data[data_idx[b_i], i] = [data[b_i][i][0], data[b_i][i][1], data[b_i][i][2]]
+                    a_pid[data_idx[b_i], i] = pred[i]
                 ## IoU
                 avg_iou = Eval.EvalIoU(pred, seg[b_i], iou_oids)
                 perdata_miou = (perdata_miou * data_cnt + avg_iou) / (data_cnt + 1)
@@ -505,6 +518,9 @@ class ShapeNet_Trainer():
             print('\rEvaluatedSamp {:d}  Avg Loss {:.4f}  Avg Acc {:.3f}%  Avg IoU {:.3f}%'.format(
                 data_cnt, avg_loss, 100 * avg_acc, 100 * np.mean(pershape_miou)), end='')
 
+        data = f.create_dataset("data", data=a_data)
+        label = f.create_dataset("label", data=a_label)
+        pid = f.create_dataset("pid", data=a_pid)
         return avg_loss, avg_acc, perdata_miou, pershape_miou
 
         ### Evaluation on validation set function
