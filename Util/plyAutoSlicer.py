@@ -135,10 +135,11 @@ while startIndex < totalv:
         continueGrids = vertices[startIndex: endIndex]
     else:
         continueGrids = vertices[startIndex:]
-    if (endIndex - startIndex) > h5verticesSize:
+    if len(continueGrids) >= h5verticesSize:
         randomArrange(continueGrids)
     else:
-        continueGrids = [vertices[-h5verticesSize:]]
+        repeatVertices = vertices[-h5verticesSize: startIndex]
+        continueGrids = [continueGrids + repeatVertices]
     for aSlice in continueGrids:
         for j in range(0, h5verticesSize):
             a_data[sliceIndex, j] = [aSlice[j].x, aSlice[j].y, aSlice[j].z]
