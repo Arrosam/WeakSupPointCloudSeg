@@ -6,12 +6,12 @@ def colorById(pid):
     if(pid == 0):
         return '0 0 0'
     if(pid == 1):
-        return '0 255 0'
+        return '255 71 255'
 
 basedir = os.path.dirname(__file__)
 dataset = os.path.join(basedir, "Dataset")
-shapeNetdir = os.path.join(dataset, "ShapeNet")
-filename = os.path.join(dataset, "multiSegPrediction.h5")
+outputDir = os.path.join(dataset, "hdf5ToPly")
+filename = os.path.join(dataset, "autoSlice2048.h5")
 with h5py.File(filename, 'r') as h5f:
     ply_ds = h5f['data']
     ply_ps = h5f['pid']
@@ -20,7 +20,7 @@ with h5py.File(filename, 'r') as h5f:
         v_cnt = len(ply_ds[count])
         row = ply_ds[count]
         pid_row = ply_ps[count]
-        with open(os.path.join(dataset, f'pcds_{str(count)}.ply'),'w') as ply_f:
+        with open(os.path.join(outputDir, f'pcds_{str(count)}.ply'),'w') as ply_f:
             ply_f.write('ply\n')
             ply_f.write('format ascii 1.0\n')
             ply_f.write(f'comment row {count} exported from:{filename}\n')

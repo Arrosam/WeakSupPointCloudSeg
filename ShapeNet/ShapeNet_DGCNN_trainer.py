@@ -426,7 +426,7 @@ class ShapeNet_Trainer():
         avg_acc = 0.
         perdata_miou = 0.
         pershape_miou = np.zeros_like(shape_cnt)
-        batch = 32
+        batch = 122
         vsize = 2048
         basedir = os.path.dirname(__file__)
         f = h5py.File(os.path.join(basedir, "multiSegPrediction.h5"), 'w')

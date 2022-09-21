@@ -6,8 +6,7 @@ from plyfile import PlyData, PlyElement
 
 basedir = os.path.dirname(__file__)
 dataset = os.path.join(basedir, "Dataset")
-shapeNetdir = os.path.join(dataset, "ShapeNet")
-filenames = [line.rstrip() for line in open(os.path.join(dataset, "plyFiles.txt"), 'r')]
+filenames = [line.rstrip() for line in open(os.path.join(dataset, "plyFilesEvaluating.txt"), 'r')]
 
 #f = h5py.File("./hdf5_data/data_training.h5", 'w')
 f = h5py.File(os.path.join(dataset, "multiSegEva.h5"), 'w')
