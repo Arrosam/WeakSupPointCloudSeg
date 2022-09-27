@@ -6,12 +6,17 @@ def colorById(pid):
     if(pid == 0):
         return '0 0 0'
     if(pid == 1):
-        return '255 71 255'
+        return '255 0 255'
+    if(pid == 2):
+        return '0 0 255'
+    if(pid == 3):
+        return '255 0 0'
 
+h5FileName = "autoSlice2048x16_1by256.h5"
 basedir = os.path.dirname(__file__)
 dataset = os.path.join(basedir, "Dataset")
-outputDir = os.path.join(dataset, "hdf5ToPly")
-filename = os.path.join(dataset, "autoSlice2048.h5")
+outputDir = os.path.join(dataset, "hdf5ToPly_"+h5FileName)
+filename = os.path.join(dataset, h5FileName)
 with h5py.File(filename, 'r') as h5f:
     ply_ds = h5f['data']
     ply_ps = h5f['pid']

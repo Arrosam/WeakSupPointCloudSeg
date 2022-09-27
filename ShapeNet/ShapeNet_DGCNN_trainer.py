@@ -501,7 +501,12 @@ class ShapeNet_Trainer():
                 pred = np.argmax(Z_prob_b, axis=-1)
                 for i in range(0, vsize):
                     a_data[data_idx[b_i], i] = [data[b_i][i][0], data[b_i][i][1], data[b_i][i][2]]
-                    a_pid[data_idx[b_i], i] = pred[i]
+                    if(pred[i] == seg[i]):
+                        a_pid[data_idx[b_i], i] = pred[i]
+                    elif(pred[i] == 0):
+                        a_pid[data_idx[b_i], i] = 2
+                    else:
+                        a_pid[data_idx[b_i], i] = 3
                 ## IoU
                 avg_iou = Eval.EvalIoU(pred, seg[b_i], iou_oids)
                 perdata_miou = (perdata_miou * data_cnt + avg_iou) / (data_cnt + 1)

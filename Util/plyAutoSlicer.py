@@ -4,17 +4,17 @@ import random
 import h5py
 import numpy as np
 from plyfile import PlyData, PlyElement
+from multiprocessing import Pool
 
 basedir = os.path.dirname(__file__)
 dataset = os.path.join(basedir, "Dataset")
 shapeNetdir = os.path.join(dataset, "ShapeNet")
-filename = "texturedMesh_rescaled_trimmed_recoloured.ply"
+filenames = [line.rstrip() for line in open(os.path.join(dataset, "autoSliceFiles.txt"), 'r')]
 fileQuantity = 1
-
 horizontalGrids = 1
-verticalGrids = 200
+verticalGrids = 384
 h5verticesSize = 2048
-verticesZoomRatio = 10
+verticesZoomRatio = 16
 
 class Vertex:
     def __init__(self, x, y, z, label):
@@ -46,11 +46,6 @@ class Grid:
         return f"x:{self.lowerX} - {self.upperX}, y:{self.lowerY} - {self.upperY}, v:{len(self.vertices)}"
 
 
-f = h5py.File(os.path.join(dataset, f"autoSlice{h5verticesSize}.h5"), 'w')
-plydata = PlyData.read(os.path.join(dataset, filename))
-totalv = plydata['vertex'].count
-
-
 def isMagenta(vertices, index):
     if (vertices['red'][index] >= 201 and vertices['green'][index] <= 71 and vertices['blue'][index] >= 245):
         return 1
@@ -67,87 +62,100 @@ def randomArrange(vertices):
             prevIndex = i
 
     if len(vertices) % h5verticesSize != 0:
-        vs.append(vertices[-h5verticesSize:])
+        restVertices = vertices[-len(vertices) % h5verticesSize:]
+        random.shuffle(vertices)
+        vs.append(restVertices + vertices[:h5verticesSize - len(restVertices)])
 
     vertices.clear()
     for slices in vs:
         vertices.append(slices)
 
 
+def processData(filename):
+    f = h5py.File(os.path.join(dataset, f"{filename[:-4]}_{h5verticesSize}x{verticesZoomRatio}.h5"), 'w')
+    plydata = PlyData.read(os.path.join(dataset, filename))
+    totalv = plydata['vertex'].count
 
-maxX = -2147483648
-maxY = -2147483648
-minX = 2147483647
-minY = 2147483647
-vertices = []
-grids = []
-for j in range(0, totalv):
-    x = plydata['vertex']['x'][j]
-    y = plydata['vertex']['y'][j]
-    z = plydata['vertex']['z'][j]
-    if x < minX:
-        minX = x
-    if x > maxX:
-        maxX = x
-    if y < minY:
-        minY = y
-    if y > maxY:
-        maxY = y
-    newV = Vertex(x, y, z, isMagenta(plydata['vertex'], j))
-    vertices.append(newV)
+    maxX = -2147483648
+    maxY = -2147483648
+    minX = 2147483647
+    minY = 2147483647
+    vertices = []
+    grids = []
+    for j in range(0, totalv):
+        x = plydata['vertex']['x'][j]
+        y = plydata['vertex']['y'][j]
+        z = plydata['vertex']['z'][j]
+        if x < minX:
+            minX = x
+        if x > maxX:
+            maxX = x
+        if y < minY:
+            minY = y
+        if y > maxY:
+            maxY = y
+        newV = Vertex(x, y, z, isMagenta(plydata['vertex'], j))
+        vertices.append(newV)
 
-widthInterval = (maxX - minX) / horizontalGrids
-heightInterval = (maxY - minY) / verticalGrids
-prevX = minX
-prevY = minY
-currentX = minX + widthInterval
-currentY = minY + heightInterval
-for x in range(horizontalGrids):
-    for y in range(verticalGrids):
-        grids.append(Grid(prevX, prevY, currentX, currentY))
-        prevY = currentY
-        currentY += heightInterval
-    prevX = currentX
-    currentX += widthInterval
+    widthInterval = (maxX - minX) / horizontalGrids
+    heightInterval = (maxY - minY) / verticalGrids
+    prevX = minX
     prevY = minY
+    currentX = minX + widthInterval
     currentY = minY + heightInterval
+    for x in range(horizontalGrids):
+        for y in range(verticalGrids):
+            grids.append(Grid(prevX, prevY, currentX, currentY))
+            prevY = currentY
+            currentY += heightInterval
+        prevX = currentX
+        currentX += widthInterval
+        prevY = minY
+        currentY = minY + heightInterval
 
-for v in vertices:
-    for g in range(len(grids)):
-        grids[g].pushVertex(v)
+    for v in vertices:
+        for g in range(len(grids)):
+            grids[g].pushVertex(v)
 
-vertices = []
-for g in grids:
-    for v in g.vertices:
-        vertices.append(v)
+    vertices = []
+    for g in grids:
+        for v in g.vertices:
+            vertices.append(v)
 
-slices = totalv // h5verticesSize + min(totalv % h5verticesSize, 1)
+    slices = totalv // h5verticesSize + min(totalv % h5verticesSize, 1)
 
-a_data = np.zeros((slices, h5verticesSize, 3))
-a_pid = np.zeros((slices, h5verticesSize), dtype=np.uint8)
-a_label = np.zeros((slices, 1), dtype=np.uint8)
+    a_data = np.zeros((slices, h5verticesSize, 3))
+    a_pid = np.zeros((slices, h5verticesSize), dtype=np.uint8)
+    a_label = np.zeros((slices, 1), dtype=np.uint8)
 
-sliceIndex = 0
-startIndex = 0
-endIndex = startIndex + h5verticesSize * verticesZoomRatio
-while startIndex < totalv:
-    if endIndex <= totalv:
-        continueGrids = vertices[startIndex: endIndex]
-    else:
-        continueGrids = vertices[startIndex:]
-    if len(continueGrids) >= h5verticesSize:
-        randomArrange(continueGrids)
-    else:
-        repeatVertices = vertices[-h5verticesSize: startIndex]
-        continueGrids = [continueGrids + repeatVertices]
-    for aSlice in continueGrids:
-        for j in range(0, h5verticesSize):
-            a_data[sliceIndex, j] = [aSlice[j].x, aSlice[j].y, aSlice[j].z]
-            a_pid[sliceIndex, j] = aSlice[j].label
-        sliceIndex += 1
-    startIndex = endIndex
+    sliceIndex = 0
+    startIndex = 0
     endIndex = startIndex + h5verticesSize * verticesZoomRatio
+    while startIndex < totalv:
+        if endIndex <= totalv:
+            continueGrids = vertices[startIndex: endIndex]
+        else:
+            continueGrids = vertices[startIndex:]
+        if len(continueGrids) >= h5verticesSize:
+            randomArrange(continueGrids)
+        else:
+            repeatVertices = vertices[-(h5verticesSize * verticesZoomRatio): startIndex]
+            random.shuffle(repeatVertices)
+            continueGrids = [continueGrids + repeatVertices]
+        for aSlice in continueGrids:
+            for j in range(0, h5verticesSize):
+                a_data[sliceIndex, j] = [aSlice[j].x, aSlice[j].y, aSlice[j].z]
+                a_pid[sliceIndex, j] = aSlice[j].label
+            sliceIndex += 1
+        startIndex = endIndex
+        endIndex = startIndex + h5verticesSize * verticesZoomRatio
 
-data = f.create_dataset("data", data = a_data)
-label = f.create_dataset("label", data = a_label)
-pid = f.create_dataset("pid", data = a_pid)
+    f.create_dataset("data", data=a_data)
+    f.create_dataset("label", data=a_label)
+    f.create_dataset("pid", data=a_pid)
+    f.close()
+    print(f"Finished{filename}")
+
+if __name__ == '__main__':
+    with Pool(len(filenames)) as p:
+        p.map(processData, filenames)
